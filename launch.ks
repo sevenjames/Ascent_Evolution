@@ -210,14 +210,14 @@ function Calculate_DeltaV {
 }
 
 function circular_speed {
-	parameter R.
-	local R_val to ship:body:radius + R.
+	parameter R_param.
+	local R_val to ship:body:radius + R_param.
 	return sqrt(ship:body:mu/R_val).
 }
 
 function vis_via_speed {
-	parameter R, a is ship:orbit:semimajoraxis.
-	local R_val to ship:body:radius + R.
+	parameter R_param, a is ship:orbit:semimajoraxis.
+	local R_val to ship:body:radius + R_param.
 	return sqrt(ship:body:mu*(2/R_val - 1/a)).
 }
 
