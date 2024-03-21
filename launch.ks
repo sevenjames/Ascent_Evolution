@@ -10,7 +10,7 @@ set ship:control:pilotmainthrottle to 0.
 local TargetOrbit is 400000. // The target altitude of our parking orbit.
 
 local PitchProgram_Select to 3.
-local log_data to true.
+local log_data to false. // Fails due to not enough storage. Disabled until log function rewrite to write log file in Archive instead of ship storage.
 local log_data_dt to 0.5.
 local log_file_name to "".
 local log_var_names to "Time,Altitude,Vertical_Speed,Horizontal_Speed,Pitch,Gamma,Apoapsis,Periapsis,TWR,DeltaV_Gain,DeltaV_Loss,DeltaV_Total".
