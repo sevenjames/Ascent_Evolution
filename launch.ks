@@ -1,5 +1,5 @@
 // *********************************************** //
-//    Ascent Program Evolution: V3.0   //
+//    Ascent Program Evolution: V4.0   //
 // *********************************************** //
 
 // Clean up work area
@@ -10,14 +10,24 @@ set ship:control:pilotmainthrottle to 0.
 local TargetOrbit is 400000. // The target altitude of our parking orbit.
 
 local PitchProgram_Select to 3.
+	// 1 = Square Root Curve
+	// 2 = Pitch Rate with Acceleration Integration
+	// 3 = Pitch Rate with Jerk Integration
 local log_data to false. // Fails due to not enough storage. Disabled until log function rewrite to write log file in Archive instead of ship storage.
 local log_data_dt to 0.5.
 local log_file_name to "".
 local log_var_names to "Time,Altitude,Vertical_Speed,Horizontal_Speed,Pitch,Gamma,Apoapsis,Periapsis,TWR,DeltaV_Gain,DeltaV_Loss,DeltaV_Total".
 local ship_name to "TestCraft".
-// 1 = Square Root Curve
-// 2 = Pitch Rate with Acceleration Integration
-// 3 = Pitch Rate with Jerk Integration
+
+RUNONCEPATH("Library/lib_derivator.ks").
+RUNONCEPATH("Library/lib_integrator.ks").
+RUNONCEPATH("Library/lib_VerticalAccelCalcs.ks").
+RUNONCEPATH("Library/lib_MachNumber.ks").
+RUNONCEPATH("Library/lib_BisectionSolver.ks").
+RUNONCEPATH("Library/lib_execnode.ks").
+
+local v_accel_func to makeDerivator_N(0,10).
+local v_jerk_func to makeDerivator_N(0,20).
 
 // Initialize Log File
 function list_to_string {
@@ -75,15 +85,7 @@ function log_data_func {
   log log_var_data to log_file_name.
 }
 
-RUNONCEPATH("Library/lib_derivator.ks").
-RUNONCEPATH("Library/lib_integrator.ks").
-RUNONCEPATH("Library/lib_VerticalAccelCalcs.ks").
-RUNONCEPATH("Library/lib_MachNumber.ks").
-RUNONCEPATH("Library/lib_BisectionSolver.ks").
-RUNONCEPATH("Library/lib_execnode.ks").
 
-local v_accel_func to makeDerivator_N(0,10).
-local v_jerk_func to makeDerivator_N(0,20).
 // Functions
 
 function PitchProgram_Sqrt {
@@ -215,7 +217,7 @@ function circular_speed {
 	return sqrt(ship:body:mu/R_val).
 }
 
-function vis_via_speed {
+function vis_viva_speed {
 	parameter R_param, a is ship:orbit:semimajoraxis.
 	local R_val to ship:body:radius + R_param.
 	return sqrt(ship:body:mu*(2/R_val - 1/a)).
@@ -223,7 +225,7 @@ function vis_via_speed {
 
 function Circularize_DV_Calc{
 	local Vapo_cir to circular_speed(apoapsis).
-	local Delta_V to  Vapo_cir - vis_via_speed(apoapsis).
+	local Delta_V to  Vapo_cir - vis_viva_speed(apoapsis).
 	local CirPer to NODE(TIME:seconds + eta:apoapsis, 0, 0, Delta_V).
 	ADD CirPer.
 	return CirPer:deltav:mag.
@@ -293,7 +295,6 @@ Pitch_Data:ADD("Pitch_Final",90).
 Pitch_Data:ADD("Alt_Final",ship:body:atm:height).
 
 // Pitch Program Parameters: Jerk Integration
-
 local T2Alt_Solver to makeBiSectSolver(T2Alt_Score@,100,101).
 local T2Alt_TestPoints to T2Alt_Solver:call().
 local pitch_controller to makePitch_rate_function(10).
@@ -353,7 +354,7 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
 	set line to line + 1.
 	print "AscentStage   = " + AscentStage + "   " at(0,line).
 	set line to line + 1.
-  print "pitch_ang     = " + round(pitch_ang,2) + "   " at(0,line).
+	print "pitch_ang     = " + round(pitch_ang,2) + "   " at(0,line).
 	set line to line + 1.
   if PitchProgram_Select = 1 {
     print "Pitch Program: Square Root Curve       " at(0,line).
@@ -378,7 +379,7 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
     print "Time to Alt = " + round(T2Alt_TestPoints[2][0],2) + "     " at(0,line).
   	set line to line + 1.
   }
-  print "Gamma         = " + round(FPA,2) + "   " at(0,line).
+	print "Gamma         = " + round(FPA,2) + "   " at(0,line).
 	set line to line + 1.
 	print "Compass       = " + round(compass,2) + "   " at(0,line).
 	set line to line + 1.
@@ -386,8 +387,8 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
 	set line to line + 1.
 	print "Apoapsis      = " + round(apoapsis) + "   " at(0,line).
 	set line to line + 1.
-	print "Target Ap o   = " + TargetOrbit + "   " at(0,line).
-  set line to line + 1.
+	print "Target Apo    = " + TargetOrbit + "   " at(0,line).
+	set line to line + 1.
 	print "Periapsis     = " + round(periapsis) + "   " at(0,line).
 
 
@@ -420,4 +421,3 @@ print "Total Delta V for Circularization " + round(DeltaV_Data["Total"] + DV_Cir
 
 wait 3.
 ExecuteNode().
-//exenode_peg().
