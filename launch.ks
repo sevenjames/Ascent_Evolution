@@ -403,10 +403,13 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
 	print "DeltaV_Losses = " + round(DeltaV_Data["Total"] - DeltaV_Data["Gain"]) + "   " at(0,line).
 	set line to line + 1.
 	print "DeltaV_Eff    = " + round(100*DeltaV_Data["Gain"]/DeltaV_Data["Total"]) + "%   " at(0,line).
-  if time:seconds - log_data_start >= log_data_count*log_data_dt {
-    log_data_func(log_file_name,log_data_start,DeltaV_Data).
-    set log_data_count to log_data_count + 1.
-  }
+	
+	if log_data{
+		if time:seconds - log_data_start >= log_data_count*log_data_dt {
+			log_data_func(log_file_name,log_data_start,DeltaV_Data).
+			set log_data_count to log_data_count + 1.
+		}
+	}
 
 	wait 0.
 }
