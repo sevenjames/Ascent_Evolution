@@ -7,7 +7,8 @@ clearscreen.
 set ship:control:pilotmainthrottle to 0.
 
 // Main Inputs
-local TargetOrbit is 400000. // The target altitude of our parking orbit.
+local TargetOrbit is 200000. // The target orbital altitude.
+local TargetInclination is 13. // The target orbital inclination.
 
 local PitchProgram_Select to 3.
 	// 1 = Square Root Curve
@@ -266,8 +267,7 @@ function inst_az {
 
 // Ignition
 local pitch_ang to 0.
-local inc_des   to 0. // Desired inclination
-local compass to inst_az(inc_des).
+local compass to inst_az(TargetInclination).
 lock throttle to 1.
 lock steering to lookdirup(heading(compass,90-pitch_ang):vector,ship:facing:upvector).
 stage.
@@ -346,7 +346,7 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
   }
 
   set FPA to VANG(UP:vector,ship:velocity:surface).
-	set compass to inst_az(inc_des).
+	set compass to inst_az(TargetInclination).
 
 	// Variable Printout
 	set line to 1.
