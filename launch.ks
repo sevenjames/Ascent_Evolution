@@ -9,11 +9,12 @@ set ship:control:pilotmainthrottle to 0.
 // Main Inputs
 local TargetOrbit is 200000. // The target orbital altitude.
 local TargetInclination is 13. // The target orbital inclination.
-
+local ExecuteCircularizeManeuver is false.
 local PitchProgram_Select to 3.
 	// 1 = Square Root Curve
 	// 2 = Pitch Rate with Acceleration Integration
 	// 3 = Pitch Rate with Jerk Integration
+
 local log_data to false. // Fails due to not enough storage. Disabled until log function rewrite to write log file in Archive instead of ship storage.
 local log_data_dt to 0.5.
 local log_file_name to "".
@@ -420,4 +421,9 @@ set line to line + 3.
 print "Total Delta V for Circularization " + round(DeltaV_Data["Total"] + DV_Circ) + "    " at(0,line).
 
 wait 3.
-ExecuteNode().
+
+if ExecuteCircularizeManeuver{
+	ExecuteNode().
+}
+
+wait until false.
