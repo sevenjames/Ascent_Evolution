@@ -410,4 +410,4 @@ if ExecuteCircularizeManeuver{
 	ExecuteNode().
 }
 
-wait until false.
+print "Ascent Guidance Complete".
