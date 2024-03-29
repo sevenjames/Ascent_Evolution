@@ -7,9 +7,13 @@ clearscreen.
 set ship:control:pilotmainthrottle to 0.
 
 // Main Inputs
-local TargetOrbit is 200000. // The target orbital altitude.
-local TargetInclination is 13. // The target orbital inclination.
-local ExecuteCircularizeManeuver is false.
+parameter // these values can be passed as args from the command line.
+	TargetOrbit is body:atm:height+20000, // The default target orbital altitude.
+	TargetInclination is 0, // The defualt target orbital inclination.
+	ExecuteCircularizeManeuver is true. // default to circularize
+
+set TargetOrbit to max(TargetOrbit, body:atm:height+20000). // enforce minimum orbit altitude
+
 local PitchProgram_Select to 3.
 	// 1 = Square Root Curve
 	// 2 = Pitch Rate with Acceleration Integration
