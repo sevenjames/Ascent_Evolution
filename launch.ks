@@ -217,42 +217,23 @@ function Circularize_DV_Calc{
 	return CirPer:deltav:mag.
 }
 
-function inst_az {
+function compute_heading {
+	// Compute heading required to achieve the target orbit inclination
 	parameter inc. // target inclination
-
-	// find orbital velocity for a circular orbit at the current altitude.
 	local V_orb is max(ship:velocity:orbit:mag + 1,sqrt( body:mu / ( ship:altitude + body:radius))).
-
-	// Use the current orbital velocity
-	//local V_orb is ship:velocity:orbit:mag.
-
-	// project desired orbit onto surface heading
 	local az_orb is arcsin ( max(-1,min(1,cos(inc) / cos(ship:latitude)))).
-	if (inc < 0) {
-		set az_orb to 180 - az_orb.
-	}
-
-	// create desired orbit velocity vector
+	if (inc < 0) {set az_orb to 180 - az_orb.}
 	local V_star is heading(az_orb, 0)*v(0, 0, V_orb).
-
-	// find horizontal component of current orbital velocity vector
 	local V_ship_h is ship:velocity:orbit - vdot(ship:velocity:orbit, up:vector:normalized)*up:vector:normalized.
-
-	// calculate difference between desired orbital vector and current (this is the direction we go)
 	local V_corr is V_star - V_ship_h.
-
-	// project the velocity correction vector onto north and east directions
 	local vel_n is vdot(V_corr, ship:north:vector).
 	local vel_e is vdot(V_corr, heading(90,0):vector).
-
-	// calculate compass heading
-	local az_corr is arctan2(vel_e, vel_n).
-	return az_corr.
+	return arctan2(vel_e, vel_n).
 }
 
 // Ignition
 local pitch_ang to 0.
-local compass to inst_az(TargetInclination).
+local compass to compute_heading(TargetInclination).
 lock throttle to 1.
 lock steering to lookdirup(heading(compass,90-pitch_ang):vector,ship:facing:upvector).
 stage.
@@ -332,7 +313,7 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
 	}
 
 	set FPA to VANG(UP:vector,ship:velocity:surface).
-	set compass to inst_az(TargetInclination).
+	set compass to compute_heading(TargetInclination).
 
 	// Variable Printout
 	set line to 1.
