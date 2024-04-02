@@ -26,48 +26,6 @@ local v_jerk_func to makeDerivator_N(0,20).
 
 // Functions
 
-function PitchProgram_Sqrt {
-	parameter switch_alt is 250.
-	local pitch_ang to 0.
-	local FollowPitch to false.
-	local scale_factor to 1.0.
-	local alt_diff is scale_factor*ship:body:atm:height - switch_alt.
-	local SrfProg_pitch to 90 - VANG(UP:vector,srfprograde:vector).
-	local ObtProg_pitch to 90 - VANG(UP:vector,prograde:vector).
-	if altitude >= switch_alt {
-		set pitch_ang to max(0,min(90,90*sqrt((altitude - switch_alt)/alt_diff))).
-		if ObtProg_pitch > pitch_ang AND FollowPitch {
-			set pitch_ang to ObtProg_pitch.
-		}
-	}
-	return pitch_ang.
-}
-
-function PitchProgram_Rate {
-	parameter Pitch_Data.
-	local t_1 to Pitch_Data["Time"].
-	local t_2 to time:seconds.
-	local dt to max(0.0001,t_2 - t_1).
-	local alt_final is Pitch_Data["Alt_Final"].
-	local alt_diff is alt_final - altitude.
-
-	local a to .5*getVertAccel().
-	local b to verticalspeed.
-	local c to -alt_diff.
-
-	local time_to_alt to ((-b) + sqrt(max(0,b^2 - 4*a*c)))/(2*a).
-	local pitch_des to Pitch_Data["Pitch"].
-	local pitch_final to Pitch_Data["Pitch_Final"].
-	local pitch_rate to max(0,(pitch_final - pitch_des)/time_to_alt).
-
-	local pitch_des to min(pitch_final,max(0,pitch_des + dt*pitch_rate)).
-
-	set Pitch_Data["Pitch"] to pitch_des.
-	set Pitch_Data["Time"] to t_2.
-	set Pitch_Data["Time_to_Alt"] to time_to_alt.
-	return Pitch_Data.
-}
-
 function makePitch_rate_function {
 	parameter vertspeed_min.
 	local pitch_des to 0.
@@ -184,18 +142,6 @@ when maxthrust < current_max OR availablethrust = 0 then {
 	set current_max to maxthrust.
 	preserve.
 }
-
-// Pitch Program Parameters: Sqrt
-local switch_alt is altitude.
-
-// Pitch Program Parameters: Rate
-local min_VS is 10.
-set Pitch_Data to lexicon().
-Pitch_Data:ADD("Time",time:seconds).
-Pitch_Data:ADD("Time_to_Alt",0).
-Pitch_Data:ADD("Pitch",0).
-Pitch_Data:ADD("Pitch_Final",90).
-Pitch_Data:ADD("Alt_Final",ship:body:atm:height).
 
 // Pitch Program Parameters: Jerk Integration
 local T2Alt_Solver to makeBiSectSolver(T2Alt_Score@,100,101).
