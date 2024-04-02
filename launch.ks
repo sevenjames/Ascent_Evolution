@@ -21,9 +21,6 @@ parameter // these values can be passed as args from the command line.
 
 set TargetOrbit to max(TargetOrbit, body:atm:height+20000). // enforce minimum orbit altitude
 
-local v_accel_func to makeDerivator_N(0,10).
-local v_jerk_func to makeDerivator_N(0,20).
-
 // Functions
 
 function makePitch_rate_function {
@@ -47,6 +44,9 @@ function makePitch_rate_function {
 		return pitch_des.
 	}.
 }
+
+local v_accel_func to makeDerivator_N(0,10).
+local v_jerk_func to makeDerivator_N(0,20).
 
 function getVertAccel {
 	return v_accel_func:call(verticalspeed).
@@ -82,7 +82,6 @@ function Calculate_DeltaV {
 	local dt to max(0.0001,time2 - time1).
 	local thrust_accel to (thrust_accel_1 + thrust_accel_2)/2.
 	local a_vec to (a_vec1 + a_vec2)/2.
-	local thrust_vec to thrust_accel*ship:facing:vector.
 	set DeltaV_Data["Total"] to DeltaV_Data["Total"] + thrust_accel*dt.
 	local obt_vel_norm to ship:velocity:orbit:normalized.
 	set DeltaV_Data["Gain"] to DeltaV_Data["Gain"] + dt*(VDOT(obt_vel_norm,a_vec)).
