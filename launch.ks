@@ -26,66 +26,8 @@ local PitchProgram_Select to 3.
 	// 2 = Pitch Rate with Acceleration Integration
 	// 3 = Pitch Rate with Jerk Integration
 
-local log_data to false. // Fails due to not enough storage. Disabled until log function rewrite to write log file in Archive instead of ship storage.
-local log_data_dt to 0.5.
-local log_file_name to "".
-local log_var_names to "Time,Altitude,Vertical_Speed,Horizontal_Speed,Pitch,Gamma,Apoapsis,Periapsis,TWR,DeltaV_Gain,DeltaV_Loss,DeltaV_Total".
-local ship_name to "TestCraft".
-
 local v_accel_func to makeDerivator_N(0,10).
 local v_jerk_func to makeDerivator_N(0,20).
-
-// Initialize Log File
-function list_to_string {
-	parameter inputList.
-	local outputString to "".
-	local first to true.
-	for item in inputList {
-		if first {
-			set outputString to outputString  + item .
-			set first to false.
-		} else {
-			set outputString to outputString + "," + item.
-		}
-	}
-	return outputString.
-}
-
-if log_data{
-	if PitchProgram_Select = 1 {
-		set log_file_name to ship_name + "_" + "Sqrt.csv".
-		deletepath(log_file_name).
-	}
-	if PitchProgram_Select = 2 {
-		set log_file_name to ship_name + "_" + "Accel.csv".
-		deletepath(log_file_name).
-	}
-	if PitchProgram_Select = 3 {
-		set log_file_name to ship_name + "_" + "Jerk.csv".
-		deletepath(log_file_name).
-	}
-	log log_var_names to log_file_name.
-}
-
-function log_data_func {
-	parameter log_file_name, log_data_start, DeltaV_Data.
-	local log_var_list is LIST().
-	log_var_list:ADD(time:seconds - log_data_start).
-	log_var_list:ADD(altitude).
-	log_var_list:ADD(verticalspeed).
-	log_var_list:ADD(groundspeed).
-	log_var_list:ADD(VANG(UP:vector,ship:facing:vector)).
-	log_var_list:ADD(VANG(UP:vector,ship:velocity:surface)).
-	log_var_list:ADD(apoapsis).
-	log_var_list:ADD(periapsis).
-	local TWR to (availablethrust/mass)/g().
-	log_var_list:ADD(TWR).
-	log_var_list:ADD(DeltaV_Data["Gain"]).
-	log_var_list:ADD(DeltaV_Data["Total"] - DeltaV_Data["Gain"]).
-	log_var_list:ADD(DeltaV_Data["Total"]).
-	local log_var_data to list_to_string(log_var_list).
-	log log_var_data to log_file_name.
-}
 
 // Functions
 
@@ -277,10 +219,6 @@ DeltaV_Data:ADD("Time",time:seconds).
 DeltaV_Data:ADD("Thrust_Accel",throttle*availablethrust/mass).
 DeltaV_Data:ADD("Accel_Vec",throttle*ship:sensors:acc).
 
-// Log Data Time Management
-local log_data_start to time:seconds.
-local log_data_count to 0.
-
 local line is 1.
 local FPA is VANG(UP:vector,ship:velocity:surface).
 clearscreen.
@@ -370,13 +308,6 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
 	print "DeltaV_Losses = " + round(DeltaV_Data["Total"] - DeltaV_Data["Gain"]) + "   " at(0,line).
 	set line to line + 1.
 	print "DeltaV_Eff    = " + round(100*DeltaV_Data["Gain"]/DeltaV_Data["Total"]) + "%   " at(0,line).
-	
-	if log_data{
-		if time:seconds - log_data_start >= log_data_count*log_data_dt {
-			log_data_func(log_file_name,log_data_start,DeltaV_Data).
-			set log_data_count to log_data_count + 1.
-		}
-	}
 
 	wait 0.
 }
