@@ -9,10 +9,6 @@ RUNONCEPATH("Library/lib_MachNumber.ks").
 RUNONCEPATH("Library/lib_BisectionSolver.ks").
 RUNONCEPATH("Library/lib_execnode.ks").
 
-// Clean up work area
-clearscreen.
-set ship:control:pilotmainthrottle to 0.
-
 // Main Inputs
 parameter // these values can be passed as args from the command line.
 	TargetOrbit is body:atm:height+20000, // The default target orbital altitude.
@@ -126,6 +122,7 @@ function compute_heading {
 }
 
 // Ignition
+set ship:control:pilotmainthrottle to 0.
 local pitch_ang to 0.
 local compass to compute_heading(TargetInclination).
 lock throttle to 1.
@@ -191,8 +188,6 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
 	print "AscentStage   = " + AscentStage + "   " at(0,line).
 	set line to line + 1.
 	print "pitch_ang     = " + round(pitch_ang,2) + "   " at(0,line).
-	set line to line + 1.
-	print "Pitch Program: Pitch Rate with Jerk                     " at(0,line).
 	set line to line + 1.
 	print "Vert Accel  = " + round(getVertAccel(),3) + "     " at(0,line).
 	set line to line + 1.
