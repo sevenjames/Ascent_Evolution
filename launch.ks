@@ -21,11 +21,6 @@ parameter // these values can be passed as args from the command line.
 
 set TargetOrbit to max(TargetOrbit, body:atm:height+20000). // enforce minimum orbit altitude
 
-local PitchProgram_Select to 3.
-	// 1 = Square Root Curve
-	// 2 = Pitch Rate with Acceleration Integration
-	// 3 = Pitch Rate with Jerk Integration
-
 local v_accel_func to makeDerivator_N(0,10).
 local v_jerk_func to makeDerivator_N(0,20).
 
@@ -233,17 +228,8 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
 	}
 
 	if AscentStage = 1 {
-		if PitchProgram_Select = 1 {
-			set pitch_ang to PitchProgram_Sqrt(switch_alt).
-		}
-		if PitchProgram_Select = 2 {
-			set Pitch_Data to PitchProgram_Rate(Pitch_Data).
-			set pitch_ang to Pitch_Data["Pitch"].
-		}
-		if PitchProgram_Select = 3 {
-			set T2Alt_TestPoints to T2Alt_Solver:call().
-			set pitch_ang to pitch_controller:call(T2Alt_TestPoints[2][0]).
-		}
+		set T2Alt_TestPoints to T2Alt_Solver:call().
+		set pitch_ang to pitch_controller:call(T2Alt_TestPoints[2][0]).
 	}
 
 	if AscentStage = 2 {
@@ -261,29 +247,14 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
 	set line to line + 1.
 	print "pitch_ang     = " + round(pitch_ang,2) + "   " at(0,line).
 	set line to line + 1.
-	if PitchProgram_Select = 1 {
-		print "Pitch Program: Square Root Curve       " at(0,line).
-		set line to line + 1.
-		print "switch_alt    = " + round(switch_alt) + "   " at(0,line).
-	}
-	if PitchProgram_Select = 2 {
-		print "Pitch Program: Pitch Rate with Acceleration               " at(0,line).
-		set line to line + 1.
-		print "Vert Accel  = " + round(getVertAccel(),3) + "     " at(0,line).
-		set line to line + 1.
-		print "Time to Alt = " + round(Pitch_Data["Time_to_Alt"],2) + "     " at(0,line).
-		set line to line + 1.
-	}
-	if PitchProgram_Select = 3 {
-		print "Pitch Program: Pitch Rate with Jerk                     " at(0,line).
-		set line to line + 1.
-		print "Vert Accel  = " + round(getVertAccel(),3) + "     " at(0,line).
-		set line to line + 1.
-		print "Vert Jerk   = " + round(getVertJerk(),3) + "     " at(0,line).
-		set line to line + 1.
-		print "Time to Alt = " + round(T2Alt_TestPoints[2][0],2) + "     " at(0,line).
-		set line to line + 1.
-	}
+	print "Pitch Program: Pitch Rate with Jerk                     " at(0,line).
+	set line to line + 1.
+	print "Vert Accel  = " + round(getVertAccel(),3) + "     " at(0,line).
+	set line to line + 1.
+	print "Vert Jerk   = " + round(getVertJerk(),3) + "     " at(0,line).
+	set line to line + 1.
+	print "Time to Alt = " + round(T2Alt_TestPoints[2][0],2) + "     " at(0,line).
+	set line to line + 1.
 	print "Gamma         = " + round(FPA,2) + "   " at(0,line).
 	set line to line + 1.
 	print "Compass       = " + round(compass,2) + "   " at(0,line).
