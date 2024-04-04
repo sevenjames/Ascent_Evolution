@@ -13,14 +13,13 @@ RUNONCEPATH("Library/lib_execnode.ks").
 parameter // these values can be passed as args from the command line.
 	TargetOrbit is body:atm:height+20000, // The default target orbital altitude.
 	TargetInclination is 0, // The defualt target orbital inclination.
-	ExecuteCircularizeManeuver is true. // default to circularize
+	ExecuteCircularizeManeuver is true, // default to circularize
+	report_mode is 2.
+		// 0 = print run indicator only.
+		// 1 = also print basic report.
+		// 2 = also print ascent program analysis report.
 
 set TargetOrbit to max(TargetOrbit, body:atm:height+20000). // enforce minimum orbit altitude
-
-local report_mode is 0.
-	// 0 = print run indicator only.
-	// 1 = also print basic report.
-	// 2 = also print ascent program analysis report.
 
 // Functions
 
