@@ -14,7 +14,7 @@ parameter // these values can be passed as args from the command line.
 	TargetOrbit is body:atm:height+20000, // The default target orbital altitude.
 	TargetInclination is 0, // The defualt target orbital inclination.
 	ExecuteCircularizeManeuver is true, // default to circularize
-	report_mode is 2.
+	report_mode is 1.
 		// 0 = print run indicator only.
 		// 1 = also print basic report.
 		// 2 = also print ascent program analysis report.
@@ -158,10 +158,40 @@ DeltaV_Data:ADD("Gain",0).
 DeltaV_Data:ADD("Time",time:seconds).
 DeltaV_Data:ADD("Thrust_Accel",throttle*availablethrust/mass).
 DeltaV_Data:ADD("Accel_Vec",throttle*ship:sensors:acc).
+local circ_maneuver_magnitude is 0.
 
-local line is 1.
 local FPA is VANG(UP:vector,ship:velocity:surface).
 clearscreen.
+
+function Print_Reports {
+	parameter line is 0.
+	print "ASCENT GUIDANCE PROGRAM RUNNING" at(0,line). set line to line + 1.
+	if report_mode >= 1 { // print basic  report
+		print "Target Apo    = " + TargetOrbit + "   " at(0,line). set line to line + 1.
+		print "Apoapsis      = " + round(apoapsis) + "   " at(0,line). set line to line + 1.
+		print "Altitude      = " + round(altitude) + "   " at(0,line). set line to line + 1.
+		print "Target Inc    = " + TargetInclination + "   " at(0,line). set line to line + 1.
+		print "Compass       = " + round(compass,2) + "   " at(0,line). set line to line + 1.
+		print "Pitch         = " + round(pitch_ang,2) + "   " at(0,line). set line to line + 1.
+	}
+	if report_mode >= 2 { // print analysis report
+		set line to line + 1.
+		print "ASCENT GUIDANCE ANALYSIS" at(0,line). set line to line + 1.
+		print "Vert Accel  = " + round(getVertAccel(),3) + "     " at(0,line). set line to line + 1.
+		print "Vert Jerk   = " + round(getVertJerk(),3) + "     " at(0,line). set line to line + 1.
+		print "Time to Alt = " + round(T2Alt_TestPoints[2][0],2) + "     " at(0,line). set line to line + 1.
+		print "Gamma         = " + round(FPA,2) + "   " at(0,line). set line to line + 1.
+		set line to line + 1.
+		print "DeltaV_total  = " + round(DeltaV_Data["Total"]) + "   " at(0,line). set line to line + 1.
+		print "DeltaV_gain   = " + round(DeltaV_Data["Gain"]) + "   " at(0,line). set line to line + 1.
+		print "DeltaV_Losses = " + round(DeltaV_Data["Total"] - DeltaV_Data["Gain"]) + "   " at(0,line). set line to line + 1.
+		print "DeltaV_Eff    = " + round(100*DeltaV_Data["Gain"]/DeltaV_Data["Total"]) + "%   " at(0,line). set line to line + 1.
+	}
+	if circ_maneuver_magnitude > 0 {
+		set line to line + 1.
+		print "Total Delta V for Circularization " + round(DeltaV_Data["Total"] + circ_maneuver_magnitude) + "    " at(0,line). set line to line + 1.
+	}
+}
 
 // Main Ascent Guidance Loop
 until AscentStage = 2 AND altitude > ship:body:ATM:height {
@@ -185,48 +215,17 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
 	set compass to compute_heading(TargetInclination).
 	set DeltaV_Data to Calculate_DeltaV(DeltaV_Data).
 
-	// Print Report
-	set line to 1.
-	print "ASCENT GUIDANCE PROGRAM RUNNING" at(0,line). set line to line + 1.
-
-	if report_mode >= 1 { // print basic  report
-		set line to line + 1.
-		print "Target Apo    = " + TargetOrbit + "   " at(0,line). set line to line + 1.
-		print "Target Inc    = " + TargetInclination + "   " at(0,line). set line to line + 1.
-		print "Apoapsis      = " + round(apoapsis) + "   " at(0,line). set line to line + 1.
-		print "Compass       = " + round(compass,2) + "   " at(0,line). set line to line + 1.
-		print "pitch_ang     = " + round(pitch_ang,2) + "   " at(0,line). set line to line + 1.
-	}
-
-	if report_mode >= 2 { // print analysis report
-		set line to line + 1.
-		print "ASCENT GUIDANCE ANALYSIS".
-		print "ThrottleStage = " + ThrottleStage + "   " at(0,line). set line to line + 1.
-		print "AscentStage   = " + AscentStage + "   " at(0,line). set line to line + 1.
-		print "Vert Accel  = " + round(getVertAccel(),3) + "     " at(0,line). set line to line + 1.
-		print "Vert Jerk   = " + round(getVertJerk(),3) + "     " at(0,line). set line to line + 1.
-		print "Time to Alt = " + round(T2Alt_TestPoints[2][0],2) + "     " at(0,line). set line to line + 1.
-		print "Gamma         = " + round(FPA,2) + "   " at(0,line). set line to line + 1.
-		print "Altitude      = " + round(altitude) + "   " at(0,line). set line to line + 1.
-		print "Periapsis     = " + round(periapsis) + "   " at(0,line). set line to line + 1.
-		set line to line + 1.
-		print "DeltaV_total  = " + round(DeltaV_Data["Total"]) + "   " at(0,line). set line to line + 1.
-		print "DeltaV_gain   = " + round(DeltaV_Data["Gain"]) + "   " at(0,line). set line to line + 1.
-		print "DeltaV_Losses = " + round(DeltaV_Data["Total"] - DeltaV_Data["Gain"]) + "   " at(0,line). set line to line + 1.
-		print "DeltaV_Eff    = " + round(100*DeltaV_Data["Gain"]/DeltaV_Data["Total"]) + "%   " at(0,line). set line to line + 1.
-	}
+	Print_Reports().
 
 	wait 0.
 }
 
-local circ_maneuver_magnitude to Create_Circularization_Maneuver().
-set line to line + 1.
-print "Total Delta V for Circularization " + round(DeltaV_Data["Total"] + circ_maneuver_magnitude) + "    " at(0,line).
+set circ_maneuver_magnitude to Create_Circularization_Maneuver().
+
+Print_Reports().
+if report_mode = 2{kuniverse:pause.} // allow review of the extended report
 
 wait 3.
-
-if ExecuteCircularizeManeuver{
-	ExecuteNode().
-}
+if ExecuteCircularizeManeuver{ExecuteNode().}
 
 print "Ascent Guidance Complete".
