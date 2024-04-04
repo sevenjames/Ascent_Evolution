@@ -188,7 +188,7 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
 
 	// Print Report
 	set line to 1.
-	print "ASCENT GUIDANCE PROGRAM RUNNING". //set line to line + 1.
+	print "ASCENT GUIDANCE PROGRAM RUNNING" at(0,line). set line to line + 1.
 
 	if report_mode >= 1 { // print basic  report
 		set line to line + 1.
