@@ -99,12 +99,11 @@ function vis_viva_speed {
 	return sqrt(ship:body:mu*(2/R_val - 1/a)).
 }
 
-function Circularize_DV_Calc{
-	local Vapo_cir to circular_speed(apoapsis).
-	local Delta_V to  Vapo_cir - vis_viva_speed(apoapsis).
-	local CirPer to NODE(TIME:seconds + eta:apoapsis, 0, 0, Delta_V).
-	ADD CirPer.
-	return CirPer:deltav:mag.
+function Create_Circularization_Maneuver{
+	local circ_dv to circular_speed(apoapsis) - vis_viva_speed(apoapsis).
+	local circ_maneuver to NODE(TIME:seconds + eta:apoapsis, 0, 0, circ_dv).
+	ADD circ_maneuver.
+	return circ_maneuver:deltav:mag.
 }
 
 function compute_heading {
@@ -223,9 +222,9 @@ until AscentStage = 2 AND altitude > ship:body:ATM:height {
 	wait 0.
 }
 
-local DV_Circ to Circularize_DV_Calc().
+local circ_maneuver_magnitude to Create_Circularization_Maneuver().
 set line to line + 3.
-print "Total Delta V for Circularization " + round(DeltaV_Data["Total"] + DV_Circ) + "    " at(0,line).
+print "Total Delta V for Circularization " + round(DeltaV_Data["Total"] + circ_maneuver_magnitude) + "    " at(0,line).
 
 wait 3.
 
